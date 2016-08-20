@@ -1,0 +1,3 @@
+[submodule "the-little-mler"]
+	path = the-little-mler
+	url = https://github.com/steinuil/the-little-ocamler
