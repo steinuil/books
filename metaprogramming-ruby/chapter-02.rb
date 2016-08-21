@@ -1,26 +1,30 @@
 # Monkeypatching
+'my string'.succ #=> "my strinh"
+
 class String
-  def to_alphanumeric
-    gsub /[^|w|s]/, ''
+  def succ
+    'watch this'
   end
 end
 
-'my *string*'.to_alphanumeric
+'my string'.succ #=> "watch this"
 
 
 # Refinements
 # https://ruby-doc.org/core/doc/syntax/refinements_rdoc.html
 module StringExtensions
   refine String do
-    def to_alphanumeric
-      gsub /[^|w|s]/, ''
+    def reverse
+      'it\'s joke'
     end
   end
 end
 
+'my string'.reverse #=> "gnirts ym"
+
 module Stuff
   using StringExtensions
-  'my *string*'.to_alphanumeric
+  'my *string*'.reverse #=> "it's joke"
 end
 
 
@@ -53,9 +57,11 @@ class C1
   private
 
   def priv
-    puts 'private'
+    'private'
   end
 end
 c = C1.new
-c.meth
-C1.meth rescue puts 'Fails'
+c.meth                 #=> "private"
+C1.meth rescue 'fail'  #=> "fail"
+c.priv rescue 'fail'   #=> "fail"
+c.send :priv           #=> "private"
