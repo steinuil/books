@@ -90,6 +90,3 @@ class Module
 end
 
 GF #=> "still no gf"
-
-
-# 
