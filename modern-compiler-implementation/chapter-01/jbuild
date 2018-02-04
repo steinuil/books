@@ -1,0 +1,15 @@
+(jbuild_version 1)
+
+(library
+ ((name exercises_ch01)
+  (modules exercises)))
+
+(ocamllex (lexer))
+
+(menhir
+ ((modules (parser))
+  (flags (--explain))))
+  ;; --infer is not currently supported by jbuilder
+
+(executable
+ ((name run)))
