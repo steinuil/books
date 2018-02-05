@@ -88,11 +88,20 @@ let test_files =
   ]
 
 
-let () =
-  test_files |> List.iter begin fun f ->
-    let chan = open_in f in
-    let lexbuf = Lexing.from_channel chan in
-    print_endline (f ^ ":");
-    print_endline (string_of_tokens lexbuf)
-  end
+open OUnit2
 
+
+let test_lex f test_ctx =
+  let chan = open_in f in
+  let lexbuf = Lexing.from_channel chan in
+  let _ = string_of_tokens lexbuf in
+  close_in chan
+
+
+let suite =
+  "Chapter 02" >:::
+    (List.map (fun f -> ("Lexing " ^ f) >:: (test_lex f)) test_files)
+
+
+let () =
+  run_test_tt_main suite

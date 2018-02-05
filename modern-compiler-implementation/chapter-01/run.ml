@@ -8,16 +8,36 @@ let prog =
 
 
 let prog2 =
-  "a := 5 + 3; b := ( print ( a, a - 1) , 10 * a ) ; print ( b )"
+  "a := 5 + 3; b := ( print ( a, a - 1 ) , 10 * a ) ; print ( b )"
+
+
+open OUnit2
+
+
+let test_maxargs prog mx test_ctx =
+  let max' = Interpreter.maxargs prog in
+  assert_equal max' mx
+
+
+let test_interp prog test_ctx =
+  let ls = ref [] in
+  let print x = ls := x :: !ls in
+  Interpreter.interp' print prog;
+  assert_equal !ls ["80"; "7"; "8"]
+
+
+let test_parser str test_ctx =
+  let prog = Parser.program Lexer.read @@ Lexing.from_string str in
+  test_interp prog test_ctx
+
+
+let suite =
+  "Chapter 01" >:::
+    [ "maxargs" >:: (test_maxargs prog 2)
+    ; "Interpreting the AST" >:: (test_interp prog)
+    ; "Parsing and interpreting" >:: (test_parser prog2)
+    ]
 
 
 let () =
-  let m = Interpreter.maxargs prog in
-  print_string "Maximum number of arguments to print: ";
-  print_int m;
-  print_newline ();
-  print_endline "Evaluating the AST:";
-  Interpreter.interp prog;
-  print_endline "Parsing and evaluating the string:";
-  let program = Parser.program Lexer.read (Lexing.from_string prog2) in
-  Interpreter.interp program
+  run_test_tt_main suite

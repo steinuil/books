@@ -25,35 +25,38 @@ let fn_of_op = function
   | Times -> ( * )
   | Div -> ( / )
 
-let rec interp_stm binds : stm -> (string * int) list = function
-  | CompoundStm (stm1, stm2) ->
-    let binds = interp_stm binds stm1 in
-    interp_stm binds stm2
-  | AssignStm (id, exp) ->
-    let (v, binds) = interp_exp binds exp in
-    (id, v) :: binds
-  | PrintStm exps ->
-    let folder binds exp =
+let interp' print stm =
+  let rec interp_stm binds : stm -> (string * int) list = function
+    | CompoundStm (stm1, stm2) ->
+      let binds = interp_stm binds stm1 in
+      interp_stm binds stm2
+    | AssignStm (id, exp) ->
       let (v, binds) = interp_exp binds exp in
-      print_int v; print_newline ();
-      binds in
-    List.fold_left folder binds exps
-and interp_exp binds : exp -> (int * (string * int) list) = function
-  | IdExp id ->
-    (List.assoc id binds, binds)
-  | NumExp n ->
-    (n, binds)
-  | OpExp (n1, op, n2) ->
-    let (val1, binds) = interp_exp binds n1 in
-    let (val2, binds) = interp_exp binds n2 in
-    let fn = fn_of_op op in
-    (fn val1 val2, binds)
-  | EseqExp (stm, exp) ->
-    let binds = interp_stm binds stm in
-    let (v, binds) = interp_exp binds exp in
-    (v, binds)
-
-
-let interp stm =
+      (id, v) :: binds
+    | PrintStm exps ->
+      let folder binds exp =
+        let (v, binds) = interp_exp binds exp in
+        print (string_of_int v);
+        binds in
+      List.fold_left folder binds exps
+  and interp_exp binds : exp -> (int * (string * int) list) = function
+    | IdExp id ->
+      (List.assoc id binds, binds)
+    | NumExp n ->
+      (n, binds)
+    | OpExp (n1, op, n2) ->
+      let (val1, binds) = interp_exp binds n1 in
+      let (val2, binds) = interp_exp binds n2 in
+      let fn = fn_of_op op in
+      (fn val1 val2, binds)
+    | EseqExp (stm, exp) ->
+      let binds = interp_stm binds stm in
+      let (v, binds) = interp_exp binds exp in
+      (v, binds)
+  in
   let _ = interp_stm [] stm in
   ()
+
+
+let interp =
+  interp' print_endline

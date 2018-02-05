@@ -12,4 +12,10 @@
   ;; --infer is not currently supported by jbuilder
 
 (executable
- ((name run)))
+ ((name run)
+  (libraries (oUnit))))
+
+(alias
+ ((name runtest)
+  (deps (run.exe))
+  (action (run ${<}))))

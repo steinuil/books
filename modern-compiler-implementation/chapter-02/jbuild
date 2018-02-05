@@ -8,4 +8,5 @@
   (action (chdir ${ROOT} (run ${<})))))
 
 (executable
- ((name run)))
+ ((name run)
+  (libraries (oUnit))))
