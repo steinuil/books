@@ -14,6 +14,17 @@ type tokens =
   | INT of int
   | ID of string
   | EOF
+
+type pos =
+  { mutable line : int
+  ; mutable line_start : int }
+
+let curr = { line = 1; line_start = 0 }
+
+let fail (lexbuf : Lexing.lexbuf) msg =
+  let col = lexbuf.lex_curr_pos - curr.line_start in
+  let pos = Printf.sprintf "line %d, character %d: " curr.line col in
+  failwith (pos ^ msg)
 }
 
 let id =
@@ -26,12 +37,17 @@ let caret_escaped =
 rule read = parse
 | eof  { EOF }
 
-| [' ' '\n' '\r' '\t']
+| [' ' '\r' '\t']
   { read lexbuf }
+
+| '\n'
+  { curr.line <- curr.line + 1;
+    curr.line_start <- lexbuf.lex_curr_pos + 1;
+    read lexbuf }
 
 | "/*"  { comment 1 lexbuf }
 
-| "*/"  { failwith "Unbalanced comment" }
+| "*/"  { fail lexbuf "Unbalanced comment" }
 
 | "while"     { WHILE }   | "for"       { FOR }
 | "to"        { TO }      | "break"     { BREAK }
@@ -61,7 +77,8 @@ rule read = parse
 | ['0'-'9']+
   { INT (int_of_string (Lexing.lexeme lexbuf)) }
 | '"' { string (Buffer.create 16) lexbuf }
-| _   { failwith ("Unexpected token: " ^ Lexing.lexeme lexbuf) }
+| _   { fail lexbuf ("Unexpected token: " ^ Lexing.lexeme lexbuf) }
+
 
 and comment depth = parse
 | "/*"  { comment (depth + 1) lexbuf }
@@ -69,8 +86,12 @@ and comment depth = parse
             read lexbuf
           else
             comment (depth - 1) lexbuf }
-| eof   { failwith "Unterminated comment" }
+| '\n'  { curr.line <- curr.line + 1;
+          curr.line_start <- lexbuf.lex_curr_pos + 1;
+          comment depth lexbuf }
+| eof   { fail lexbuf "Unterminated comment" }
 | _     { comment depth lexbuf }
+
 
 and string buf = parse
 | '"'     { STRING (Buffer.contents buf) }
@@ -84,12 +105,26 @@ and string buf = parse
 | '\\' (['0'-'9']['0'-'9']['0'-'9'] as n)
           { let chr = int_of_string n in
             if chr > 128 || chr < 0 then
-              failwith ("Invalid character code: " ^ string_of_int chr)
+              fail lexbuf ("Invalid character code: " ^ string_of_int chr)
             else
               Buffer.add_char buf (Char.chr chr);
               string buf lexbuf }
+| '\\'
 | '\\' [' ' '\t' '\n' '\r']* '\\'
           { string buf lexbuf }
-| eof     { failwith "Unterminated string" }
-| _ as c  { Buffer.add_char buf c;
+| ['\032'-'\126'] as c
+          { Buffer.add_char buf c;
             string buf lexbuf }
+| eof     { fail lexbuf "Unterminated string" }
+| _       { fail lexbuf "Unexpected character in string" }
+
+
+and string_esc str = parse
+| '\\'    { string str lexbuf }
+| '\n'    { curr.line <- curr.line + 1;
+            curr.line_start <- lexbuf.lex_curr_pos + 1;
+            string_esc str lexbuf }
+| [' ' '\t' '\r']*
+          { string_esc str lexbuf }
+| eof     { fail lexbuf "Unterminated string escape" }
+| _ as c  { fail lexbuf ("Invalid character in string escape: " ^ Char.escaped c) }
