@@ -1,0 +1,16 @@
+(jbuild_version 1)
+
+(ocamllex (lexer))
+
+(menhir
+ ((modules (parser))
+  (flags (--explain --strict))))
+
+(executable
+ ((name run)
+  (libraries (oUnit))))
+
+(alias
+ ((name runtest)
+  (deps (run.exe (files_recursively_in ../testcases)))
+  (action (chdir ${ROOT} (run ${<})))))
