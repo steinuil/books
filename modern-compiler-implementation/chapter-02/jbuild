@@ -1,0 +1,13 @@
+(jbuild_version 1)
+
+(ocamllex (tiger))
+
+(alias
+ ((name  runtest)
+  (deps (run.exe))
+  (action
+   (chdir ${ROOT}
+    (run ${<} ${path:test1.tig})))))
+
+(executable
+ ((name run)))
