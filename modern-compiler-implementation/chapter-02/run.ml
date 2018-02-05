@@ -18,7 +18,7 @@ let string_of_token =
   | LE -> "LE" | GT -> "GT" | GE -> "GE"
   | AMP -> "AMP" | BAR -> "BAR" | ASSIGN -> "ASSIGN"
   | STRING str -> "STRING(\"" ^ str ^ "\")"
-  | INT n -> "NUM(" ^ string_of_int n ^ ")"
+  | INT n -> "INT(" ^ string_of_int n ^ ")"
   | ID id -> "ID(" ^ id ^ ")"
   | EOF -> "EOF"
 

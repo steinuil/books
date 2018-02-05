@@ -63,7 +63,7 @@ rule read = parse
 | '[' { LBRACK } | ']' { RBRACK }
 | '{' { LBRACE } | '}' { RBRACE }
 | '.' { DOT }       | ',' { COMMA }
-| ':' { SEMICOLON } | ';' { COLON }
+| ';' { SEMICOLON } | ':' { COLON }
 
 | '+'   { PLUS } | '-'   { MINUS }
 | '*'   { STAR } | '/'   { SLASH }
